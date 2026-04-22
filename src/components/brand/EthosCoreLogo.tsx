@@ -23,7 +23,7 @@ const sizeConfig: Record<LogoSize, { icon: number; text: string; gap: string }> 
  * 
  * Features:
  * - Shield design representing trust & technology
- * - EthosHub Blue (#0066FF) gradient accent
+ * - Lilac/Purple (#8B5CF6) gradient accent
  * - Hover glow effect with spring animation
  * - "Ethos" Bold + "Hub" Light typography (Sora font)
  */
@@ -43,19 +43,19 @@ export function EthosCoreLogo({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Gradient Definitions */}
+      {/* Gradient Definitions - Lilac/Purple Palette */}
       <defs>
         <linearGradient id="shieldGradient" x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#0066FF" stopOpacity="0.15" />
-          <stop offset="1" stopColor="#0066FF" stopOpacity="0.05" />
+          <stop stopColor="#8B5CF6" stopOpacity="0.15" />
+          <stop offset="1" stopColor="#7C3AED" stopOpacity="0.05" />
         </linearGradient>
         <linearGradient id="strokeGradient" x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#0066FF" />
-          <stop offset="1" stopColor="#0044CC" />
+          <stop stopColor="#8B5CF6" />
+          <stop offset="1" stopColor="#7C3AED" />
         </linearGradient>
         <linearGradient id="innerGradient" x1="12" y1="10" x2="36" y2="38" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#0066FF" stopOpacity="0.2" />
-          <stop offset="1" stopColor="#0066FF" stopOpacity="0.08" />
+          <stop stopColor="#8B5CF6" stopOpacity="0.2" />
+          <stop offset="1" stopColor="#7C3AED" stopOpacity="0.08" />
         </linearGradient>
         <filter id="glowFilter" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
@@ -81,22 +81,22 @@ export function EthosCoreLogo({
         fill="url(#innerGradient)"
       />
       
-      {/* Checkmark Symbol - Trust/Verification with blue accent */}
+      {/* Checkmark Symbol - Trust/Verification with lilac accent */}
       <path
         d="M17 24L22 29L31 19"
-        stroke="#0066FF"
+        stroke="#8B5CF6"
         strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
         filter="url(#glowFilter)"
       />
       
-      {/* Blue Accent Dot - Brand Identity */}
+      {/* Lilac Accent Dot - Brand Identity */}
       <circle
         cx="38"
         cy="10"
         r="4"
-        fill="#0066FF"
+        fill="#8B5CF6"
       />
     </svg>
   );
@@ -109,7 +109,7 @@ export function EthosCoreLogo({
           className="relative flex-shrink-0"
           whileHover={{ 
             scale: 1.05,
-            filter: 'drop-shadow(0 0 12px rgba(0, 102, 255, 0.5))'
+            filter: 'drop-shadow(0 0 12px rgba(139, 92, 246, 0.5))'
           }}
           transition={{ 
             type: 'spring', 
@@ -125,11 +125,11 @@ export function EthosCoreLogo({
         </div>
       )}
       
-      {/* Text - Ethos (Bold) + Hub (Light) */}
+      {/* Text - Ethos (Bold) + Hub (Light in Lilac) */}
       {showText && (
         <span className={cn('font-sora tracking-tight', config.text)}>
           <span className="font-bold text-foreground">Ethos</span>
-          <span className="font-light text-ethoshub-blue">Hub</span>
+          <span className="font-light text-violet-500">Hub</span>
         </span>
       )}
     </div>
@@ -159,16 +159,16 @@ export function EthosLogoIcon({
     >
       <defs>
         <linearGradient id="shieldGradientCompact" x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#0066FF" stopOpacity="0.15" />
-          <stop offset="1" stopColor="#0066FF" stopOpacity="0.05" />
+          <stop stopColor="#8B5CF6" stopOpacity="0.15" />
+          <stop offset="1" stopColor="#7C3AED" stopOpacity="0.05" />
         </linearGradient>
         <linearGradient id="strokeGradientCompact" x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#0066FF" />
-          <stop offset="1" stopColor="#0044CC" />
+          <stop stopColor="#8B5CF6" />
+          <stop offset="1" stopColor="#7C3AED" />
         </linearGradient>
         <linearGradient id="innerGradientCompact" x1="12" y1="10" x2="36" y2="38" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#0066FF" stopOpacity="0.2" />
-          <stop offset="1" stopColor="#0066FF" stopOpacity="0.08" />
+          <stop stopColor="#8B5CF6" stopOpacity="0.2" />
+          <stop offset="1" stopColor="#7C3AED" stopOpacity="0.08" />
         </linearGradient>
         <filter id="glowFilterCompact" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
@@ -191,7 +191,7 @@ export function EthosLogoIcon({
       />
       <path
         d="M17 24L22 29L31 19"
-        stroke="#0066FF"
+        stroke="#8B5CF6"
         strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -201,7 +201,7 @@ export function EthosLogoIcon({
         cx="38"
         cy="10"
         r="4"
-        fill="#0066FF"
+        fill="#8B5CF6"
       />
     </svg>
   );
@@ -211,7 +211,7 @@ export function EthosLogoIcon({
       <motion.div
         whileHover={{ 
           scale: 1.05,
-          filter: 'drop-shadow(0 0 12px rgba(0, 102, 255, 0.5))'
+          filter: 'drop-shadow(0 0 12px rgba(139, 92, 246, 0.5))'
         }}
         transition={{ 
           type: 'spring', 
