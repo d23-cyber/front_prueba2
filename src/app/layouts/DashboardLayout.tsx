@@ -9,6 +9,7 @@ import {
   Link2,
   Eye,
   Briefcase,
+  GraduationCap,
   Settings,
   Bell,
   Menu,
@@ -39,6 +40,7 @@ const professionalNavItems: DashboardNavItem[] = [
   { path: '/dashboard/connections', icon: Link2, labelKey: 'nav.connections' },
   { path: '/dashboard/visibility', icon: Eye, labelKey: 'nav.visibility' },
   { path: '/dashboard/experience', icon: Briefcase, labelKey: 'nav.experience' },
+  { path: '/dashboard/education', icon: GraduationCap, label: 'Formacion' },
   { path: '/dashboard/preferences', icon: Settings, labelKey: 'nav.preferences' },
 ];
 

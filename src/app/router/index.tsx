@@ -15,6 +15,7 @@ const ProjectDetailPage = lazy(() => import('@/pages/dashboard/ProjectDetailPage
 const ConnectionsPage = lazy(() => import('@/pages/dashboard/ConnectionsPage'));
 const VisibilityPage = lazy(() => import('@/pages/dashboard/VisibilityPage'));
 const ExperiencePage = lazy(() => import('@/pages/dashboard/ExperiencePage'));
+const EducationPage = lazy(() => import('@/pages/dashboard/EducationPage'));
 const PreferencesPage = lazy(() => import('@/pages/dashboard/PreferencesPage'));
 const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage'));
 const AdminSkillsPage = lazy(() => import('@/pages/admin/AdminSkillsPage'));
@@ -116,6 +117,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <ExperiencePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'dashboard/education',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <EducationPage />
           </Suspense>
         ),
       },
