@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   AreaChart,
   Area,
@@ -9,223 +8,202 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
 } from 'recharts';
 import {
   Users,
   Folder,
-  Eye,
-  TrendingUp,
-  ArrowUpRight,
-  ArrowDownRight,
   UserPlus,
   Activity,
-  AlertCircle,
+  TrendingUp,
+  ArrowUpRight,
+  Terminal,
   Clock,
-  MoreHorizontal,
-  Download,
-  RefreshCw,
-  Shield,
-  Ban,
-  Mail,
-  ExternalLink,
-  Settings,
-  Zap,
+  Server,
   Database,
   Globe,
+  Zap,
 } from 'lucide-react';
-import {
-  Button,
-  Card,
-  Badge,
-  Avatar,
-  LoadingSpinner,
-  Dropdown,
-} from '@/shared/ui';
+import { Button, Card, Badge } from '@/shared/ui';
 import { cn } from '@/shared/lib/utils';
 
-// Mock data
-const platformStats = [
+// Time range options
+const timeRanges = [
+  { label: '7d', value: 7 },
+  { label: '30d', value: 30 },
+  { label: '90d', value: 90 },
+  { label: '1y', value: 365 },
+];
+
+// KPI Stats
+const kpiStats = [
   {
-    label: 'Total Users',
+    label: 'Total Usuarios',
     value: '12,847',
     change: '+12.5%',
     trend: 'up' as const,
     icon: Users,
   },
   {
-    label: 'Active Portfolios',
+    label: 'Portafolios Activos',
     value: '8,234',
     change: '+8.2%',
     trend: 'up' as const,
     icon: Folder,
   },
   {
-    label: 'Page Views (30d)',
-    value: '1.2M',
-    change: '+15.3%',
+    label: 'Nuevos (24h)',
+    value: '156',
+    change: '+24.3%',
     trend: 'up' as const,
-    icon: Eye,
+    icon: UserPlus,
   },
   {
-    label: 'Avg. Session Duration',
-    value: '4m 32s',
-    change: '-2.1%',
-    trend: 'down' as const,
-    icon: Clock,
+    label: 'Salud del Sistema',
+    value: '99.9%',
+    change: '+0.1%',
+    trend: 'up' as const,
+    icon: Activity,
   },
 ];
 
-const userGrowthData = [
-  { month: 'Jan', users: 4500, active: 3200 },
-  { month: 'Feb', users: 5200, active: 3800 },
-  { month: 'Mar', users: 6100, active: 4500 },
-  { month: 'Apr', users: 7300, active: 5400 },
-  { month: 'May', users: 8900, active: 6700 },
-  { month: 'Jun', users: 10500, active: 8100 },
-  { month: 'Jul', users: 12847, active: 9850 },
+// User growth data (30 days)
+const generateGrowthData = (days: number) => {
+  const data = [];
+  const baseUsers = 10000;
+  for (let i = days; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    data.push({
+      date: date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
+      usuarios: Math.floor(baseUsers + (days - i) * 95 + Math.random() * 50),
+      activos: Math.floor((baseUsers + (days - i) * 95) * 0.75 + Math.random() * 30),
+    });
+  }
+  return data;
+};
+
+// Role distribution data
+const roleDistribution = [
+  { name: 'Estandar', value: 9850, color: '#8B5CF6' },
+  { name: 'Reclutador', value: 2847, color: '#D8B4FE' },
+  { name: 'Admin', value: 150, color: '#A78BFA' },
 ];
 
-const recentUsers = [
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'john@example.com',
-    avatar: 'https://i.pravatar.cc/150?u=john',
-    joinedAt: '2024-01-15T10:30:00Z',
-    status: 'active',
-    portfolioViews: 234,
-  },
-  {
-    id: '2',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    avatar: 'https://i.pravatar.cc/150?u=jane',
-    joinedAt: '2024-01-14T15:45:00Z',
-    status: 'active',
-    portfolioViews: 567,
-  },
-  {
-    id: '3',
-    name: 'Mike Johnson',
-    email: 'mike@example.com',
-    avatar: 'https://i.pravatar.cc/150?u=mike',
-    joinedAt: '2024-01-13T09:20:00Z',
-    status: 'pending',
-    portfolioViews: 12,
-  },
-  {
-    id: '4',
-    name: 'Sarah Williams',
-    email: 'sarah@example.com',
-    avatar: 'https://i.pravatar.cc/150?u=sarah',
-    joinedAt: '2024-01-12T14:10:00Z',
-    status: 'suspended',
-    portfolioViews: 0,
-  },
-  {
-    id: '5',
-    name: 'Alex Brown',
-    email: 'alex@example.com',
-    avatar: 'https://i.pravatar.cc/150?u=alex',
-    joinedAt: '2024-01-11T11:55:00Z',
-    status: 'active',
-    portfolioViews: 891,
-  },
+// Top skills data
+const topSkills = [
+  { name: 'React', count: 4523 },
+  { name: 'TypeScript', count: 3987 },
+  { name: 'Python', count: 3654 },
+  { name: 'Node.js', count: 3421 },
+  { name: 'AWS', count: 2987 },
 ];
 
-const systemHealth = [
-  { name: 'API Server', status: 'healthy', uptime: '99.99%', latency: '45ms' },
-  { name: 'Database', status: 'healthy', uptime: '99.95%', latency: '12ms' },
-  { name: 'CDN', status: 'healthy', uptime: '100%', latency: '8ms' },
-  { name: 'Auth Service', status: 'degraded', uptime: '99.80%', latency: '120ms' },
-];
-
-const recentActivity = [
-  { type: 'user_signup', message: 'New user signed up', user: 'john@example.com', time: '5 min ago' },
-  { type: 'portfolio_create', message: 'Portfolio created', user: 'jane@example.com', time: '12 min ago' },
-  { type: 'project_add', message: 'New project added', user: 'mike@example.com', time: '25 min ago' },
-  { type: 'report', message: 'Content reported', user: 'system', time: '1 hour ago' },
-  { type: 'user_upgrade', message: 'User upgraded to Pro', user: 'sarah@example.com', time: '2 hours ago' },
+// System logs mock
+const systemLogMessages = [
+  { type: 'info', message: '[AUTH] Usuario profesional@ethoshub.com inició sesión' },
+  { type: 'success', message: '[PORTFOLIO] Nuevo portafolio creado por @anamartinez' },
+  { type: 'info', message: '[SKILL] Skill "GraphQL" añadido por 3 usuarios' },
+  { type: 'warning', message: '[RATE_LIMIT] IP 192.168.1.45 alcanzó límite de requests' },
+  { type: 'success', message: '[PROJECT] Proyecto "E-commerce App" publicado' },
+  { type: 'info', message: '[SEARCH] Query "React developer Madrid" ejecutada' },
+  { type: 'error', message: '[DB] Conexión timeout - reconectando...' },
+  { type: 'success', message: '[DB] Conexión restablecida exitosamente' },
+  { type: 'info', message: '[AUTH] Usuario reclutador@ethoshub.com inició sesión' },
+  { type: 'success', message: '[MATCH] 5 candidatos encontrados para vacante #1234' },
 ];
 
 export default function AdminDashboardPage() {
-  const { t } = useTranslation();
-  const [loading, setLoading] = useState(true);
+  const [selectedRange, setSelectedRange] = useState(30);
+  const [growthData, setGrowthData] = useState(generateGrowthData(30));
+  const [logs, setLogs] = useState<typeof systemLogMessages>([]);
+  const logContainerRef = useRef<HTMLDivElement>(null);
 
+  // Update growth data when range changes
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => setLoading(false), 1000);
+    setGrowthData(generateGrowthData(selectedRange));
+  }, [selectedRange]);
+
+  // Simulate live system logs
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const randomLog = systemLogMessages[Math.floor(Math.random() * systemLogMessages.length)];
+      const timestamp = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      setLogs(prev => [...prev.slice(-19), { ...randomLog, message: `[${timestamp}] ${randomLog.message}` }]);
+    }, 2000);
+
+    // Initial logs
+    setLogs(systemLogMessages.slice(0, 5).map(log => ({
+      ...log,
+      message: `[${new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}] ${log.message}`
+    })));
+
+    return () => clearInterval(interval);
   }, []);
 
-  const getUserActions = (_userId: string, status: string) => [
-    { label: 'View Profile', icon: ExternalLink, onClick: () => {} },
-    { label: 'Send Email', icon: Mail, onClick: () => {} },
-    { type: 'divider' as const },
-    status !== 'suspended'
-      ? { label: 'Suspend User', icon: Ban, onClick: () => {}, danger: true }
-      : { label: 'Unsuspend User', icon: Shield, onClick: () => {} },
-  ];
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
+  // Auto-scroll logs
+  useEffect(() => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
+  }, [logs]);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{t('admin.dashboard')}</h1>
-          <p className="text-muted-foreground mt-1">{t('admin.dashboardSubtitle')}</p>
+          <h1 className="font-sora text-2xl font-bold text-foreground">Metricas Globales</h1>
+          <p className="text-muted-foreground mt-1">Centro de control de EthosHub</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline">
-            <Download className="w-4 h-4 mr-2" />
-            {t('admin.exportReport')}
-          </Button>
-          <Button>
-            <Settings className="w-4 h-4 mr-2" />
-            {t('admin.settings')}
-          </Button>
+        <div className="flex items-center gap-2">
+          {timeRanges.map((range) => (
+            <Button
+              key={range.value}
+              variant={selectedRange === range.value ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedRange(range.value)}
+              className={cn(
+                selectedRange === range.value && 'bg-violet-600 hover:bg-violet-700 text-white'
+              )}
+            >
+              {range.label}
+            </Button>
+          ))}
         </div>
       </div>
 
-      {/* Platform Stats */}
+      {/* KPI Stats - Bento Grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {platformStats.map((stat, index) => (
+        {kpiStats.map((stat, index) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <Card className="p-6">
+            <Card className="relative overflow-hidden border border-violet-500/20 bg-black/40 p-6 dark:bg-black">
+              {/* Lilac glow effect */}
+              <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-violet-500/20 blur-2xl" />
+              
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <stat.icon className="w-6 h-6 text-primary" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600">
+                  <stat.icon className="h-6 w-6 text-white" />
                 </div>
                 <Badge
-                  variant={stat.trend === 'up' ? 'default' : 'destructive'}
-                  className={cn(
-                    stat.trend === 'up'
-                      ? 'bg-green-500/10 text-green-500'
-                      : 'bg-red-500/10 text-red-500'
-                  )}
+                  variant="secondary"
+                  className="bg-violet-500/10 text-violet-400"
                 >
-                  {stat.trend === 'up' ? (
-                    <ArrowUpRight className="w-3 h-3 mr-1" />
-                  ) : (
-                    <ArrowDownRight className="w-3 h-3 mr-1" />
-                  )}
+                  <ArrowUpRight className="mr-1 h-3 w-3" />
                   {stat.change}
                 </Badge>
               </div>
               <div className="mt-4">
-                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                <p className="font-sora text-3xl font-bold text-foreground">{stat.value}</p>
                 <p className="text-sm text-muted-foreground">{stat.label}</p>
               </div>
             </Card>
@@ -235,200 +213,252 @@ export default function AdminDashboardPage() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* User Growth Chart */}
-        <Card className="p-6 lg:col-span-2">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-foreground">{t('admin.userGrowth')}</h2>
-            <Button variant="ghost" size="sm">
-              <RefreshCw className="w-4 h-4" />
-            </Button>
+        {/* User Growth Area Chart */}
+        <Card className="border border-violet-500/20 bg-black/40 p-6 lg:col-span-2 dark:bg-black">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h2 className="font-sora text-lg font-semibold text-foreground">Crecimiento de Usuarios</h2>
+              <p className="text-sm text-muted-foreground">Ultimos {selectedRange} dias</p>
+            </div>
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-violet-500" />
+                <span className="text-muted-foreground">Total</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-purple-300" />
+                <span className="text-muted-foreground">Activos</span>
+              </div>
+            </div>
           </div>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={userGrowthData}>
+              <AreaChart data={growthData}>
                 <defs>
-                  <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                  <linearGradient id="colorUsuarios" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
                   </linearGradient>
-                  <linearGradient id="colorActive" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                  <linearGradient id="colorActivos" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#D8B4FE" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#D8B4FE" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="month" className="text-muted-foreground" />
-                <YAxis className="text-muted-foreground" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#71717a" 
+                  fontSize={12}
+                  tickLine={false}
+                />
+                <YAxis 
+                  stroke="#71717a" 
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'hsl(var(--background))',
-                    borderColor: 'hsl(var(--border))',
+                    backgroundColor: '#18181b',
+                    borderColor: '#8B5CF6',
                     borderRadius: '8px',
+                    color: '#fff',
                   }}
                 />
                 <Area
                   type="monotone"
-                  dataKey="users"
-                  stroke="#3B82F6"
+                  dataKey="usuarios"
+                  stroke="#8B5CF6"
+                  strokeWidth={2}
                   fillOpacity={1}
-                  fill="url(#colorUsers)"
-                  name="Total Users"
+                  fill="url(#colorUsuarios)"
+                  name="Total Usuarios"
                 />
                 <Area
                   type="monotone"
-                  dataKey="active"
-                  stroke="#10B981"
+                  dataKey="activos"
+                  stroke="#D8B4FE"
+                  strokeWidth={2}
                   fillOpacity={1}
-                  fill="url(#colorActive)"
-                  name="Active Users"
+                  fill="url(#colorActivos)"
+                  name="Usuarios Activos"
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
-        {/* System Health */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-foreground">{t('admin.systemHealth')}</h2>
-            <Badge variant="default" className="bg-green-500/10 text-green-500">
-              <Activity className="w-3 h-3 mr-1" />
-              {t('admin.operational')}
-            </Badge>
+        {/* Role Distribution Pie Chart */}
+        <Card className="border border-violet-500/20 bg-black/40 p-6 dark:bg-black">
+          <div className="mb-6">
+            <h2 className="font-sora text-lg font-semibold text-foreground">Distribucion por Rol</h2>
+            <p className="text-sm text-muted-foreground">Segmentacion de usuarios</p>
           </div>
-          <div className="space-y-4">
-            {systemHealth.map((service) => (
-              <div
-                key={service.name}
-                className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      'w-2 h-2 rounded-full',
-                      service.status === 'healthy' && 'bg-green-500',
-                      service.status === 'degraded' && 'bg-yellow-500',
-                      service.status === 'down' && 'bg-red-500'
-                    )}
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{service.name}</p>
-                    <p className="text-xs text-muted-foreground">{service.latency} latency</p>
-                  </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={roleDistribution}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={90}
+                  paddingAngle={4}
+                  dataKey="value"
+                >
+                  {roleDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#18181b',
+                    borderColor: '#8B5CF6',
+                    borderRadius: '8px',
+                    color: '#fff',
+                  }}
+                  formatter={(value: number) => [value.toLocaleString(), 'Usuarios']}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-4 space-y-2">
+            {roleDistribution.map((role) => (
+              <div key={role.name} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: role.color }} />
+                  <span className="text-muted-foreground">{role.name}</span>
                 </div>
-                <span className="text-sm text-muted-foreground">{service.uptime}</span>
+                <span className="font-medium text-foreground">{role.value.toLocaleString()}</span>
               </div>
             ))}
           </div>
         </Card>
       </div>
 
-      {/* Users and Activity Row */}
+      {/* Bottom Row */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Recent Users */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-foreground">{t('admin.recentUsers')}</h2>
-            <Button variant="ghost" size="sm">
-              {t('admin.viewAll')}
-            </Button>
+        {/* Top Skills Bar Chart */}
+        <Card className="border border-violet-500/20 bg-black/40 p-6 dark:bg-black">
+          <div className="mb-6">
+            <h2 className="font-sora text-lg font-semibold text-foreground">Top 5 Skills</h2>
+            <p className="text-sm text-muted-foreground">Habilidades mas agregadas</p>
           </div>
-          <div className="space-y-4">
-            {recentUsers.map((user) => (
-              <div key={user.id} className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar src={user.avatar} name={user.name} size="sm" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{user.name}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Badge
-                    variant={
-                      user.status === 'active'
-                        ? 'default'
-                        : user.status === 'pending'
-                        ? 'secondary'
-                        : 'destructive'
-                    }
-                    className={cn(
-                      user.status === 'active' && 'bg-green-500/10 text-green-500',
-                      user.status === 'pending' && 'bg-yellow-500/10 text-yellow-500',
-                      user.status === 'suspended' && 'bg-red-500/10 text-red-500'
-                    )}
-                  >
-                    {user.status}
-                  </Badge>
-                  <Dropdown items={getUserActions(user.id, user.status)}>
-                    <button className="p-1 rounded hover:bg-muted">
-                      <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-                    </button>
-                  </Dropdown>
-                </div>
-              </div>
-            ))}
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={topSkills} layout="vertical">
+                <defs>
+                  <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#8B5CF6" />
+                    <stop offset="100%" stopColor="#D8B4FE" />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" horizontal={false} />
+                <XAxis type="number" stroke="#71717a" fontSize={12} tickLine={false} />
+                <YAxis 
+                  type="category" 
+                  dataKey="name" 
+                  stroke="#71717a" 
+                  fontSize={12} 
+                  tickLine={false}
+                  axisLine={false}
+                  width={80}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#18181b',
+                    borderColor: '#8B5CF6',
+                    borderRadius: '8px',
+                    color: '#fff',
+                  }}
+                  formatter={(value: number) => [value.toLocaleString(), 'Usuarios']}
+                />
+                <Bar 
+                  dataKey="count" 
+                  fill="url(#barGradient)" 
+                  radius={[0, 4, 4, 0]}
+                  name="Usuarios"
+                />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </Card>
 
-        {/* Recent Activity */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-foreground">{t('admin.recentActivity')}</h2>
-            <Button variant="ghost" size="sm">
-              {t('admin.viewAll')}
-            </Button>
+        {/* Live System Logs */}
+        <Card className="border border-violet-500/20 bg-black/40 p-6 dark:bg-black">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Terminal className="h-5 w-5 text-violet-400" />
+              <h2 className="font-sora text-lg font-semibold text-foreground">System Logs</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+              </span>
+              <span className="text-xs text-green-500">LIVE</span>
+            </div>
           </div>
-          <div className="space-y-4">
-            {recentActivity.map((activity, index) => (
-              <div key={index} className="flex items-start gap-3">
-                <div
+          <div 
+            ref={logContainerRef}
+            className="h-64 overflow-y-auto rounded-lg bg-black p-4 font-mono text-xs"
+            style={{ scrollBehavior: 'smooth' }}
+          >
+            <AnimatePresence>
+              {logs.map((log, index) => (
+                <motion.div
+                  key={`${index}-${log.message}`}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
                   className={cn(
-                    'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
-                    activity.type === 'user_signup' && 'bg-green-500/10',
-                    activity.type === 'portfolio_create' && 'bg-blue-500/10',
-                    activity.type === 'project_add' && 'bg-purple-500/10',
-                    activity.type === 'report' && 'bg-red-500/10',
-                    activity.type === 'user_upgrade' && 'bg-yellow-500/10'
+                    'mb-1 leading-relaxed',
+                    log.type === 'info' && 'text-violet-300',
+                    log.type === 'success' && 'text-green-400',
+                    log.type === 'warning' && 'text-amber-400',
+                    log.type === 'error' && 'text-red-400'
                   )}
                 >
-                  {activity.type === 'user_signup' && <UserPlus className="w-4 h-4 text-green-500" />}
-                  {activity.type === 'portfolio_create' && <Folder className="w-4 h-4 text-blue-500" />}
-                  {activity.type === 'project_add' && <Zap className="w-4 h-4 text-purple-500" />}
-                  {activity.type === 'report' && <AlertCircle className="w-4 h-4 text-red-500" />}
-                  {activity.type === 'user_upgrade' && <TrendingUp className="w-4 h-4 text-yellow-500" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground">{activity.message}</p>
-                  <p className="text-xs text-muted-foreground">{activity.user}</p>
-                </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">{activity.time}</span>
-              </div>
-            ))}
+                  {log.message}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            <div className="animate-pulse text-violet-400">_</div>
           </div>
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold text-foreground mb-4">{t('admin.quickActions')}</h2>
+      {/* System Health Grid */}
+      <Card className="border border-violet-500/20 bg-black/40 p-6 dark:bg-black">
+        <div className="mb-6">
+          <h2 className="font-sora text-lg font-semibold text-foreground">Estado del Sistema</h2>
+          <p className="text-sm text-muted-foreground">Monitoreo en tiempo real</p>
+        </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <Button variant="outline" className="flex-col h-auto py-4">
-            <Users className="w-6 h-6 mb-2" />
-            <span className="text-sm">{t('admin.manageUsers')}</span>
-          </Button>
-          <Button variant="outline" className="flex-col h-auto py-4">
-            <AlertCircle className="w-6 h-6 mb-2" />
-            <span className="text-sm">{t('admin.viewReports')}</span>
-          </Button>
-          <Button variant="outline" className="flex-col h-auto py-4">
-            <Database className="w-6 h-6 mb-2" />
-            <span className="text-sm">{t('admin.databaseBackup')}</span>
-          </Button>
-          <Button variant="outline" className="flex-col h-auto py-4">
-            <Globe className="w-6 h-6 mb-2" />
-            <span className="text-sm">{t('admin.siteSettings')}</span>
-          </Button>
+          {[
+            { name: 'API Server', icon: Server, status: 'healthy', latency: '45ms' },
+            { name: 'Database', icon: Database, status: 'healthy', latency: '12ms' },
+            { name: 'CDN', icon: Globe, status: 'healthy', latency: '8ms' },
+            { name: 'Auth Service', icon: Zap, status: 'healthy', latency: '23ms' },
+          ].map((service) => (
+            <div
+              key={service.name}
+              className="flex flex-col items-center gap-3 rounded-xl border border-violet-500/20 bg-black/60 p-4"
+            >
+              <div className="relative">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-500/20">
+                  <service.icon className="h-6 w-6 text-violet-400" />
+                </div>
+                <span className="absolute -right-1 -top-1 flex h-3 w-3">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-green-500" />
+                </span>
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-medium text-foreground">{service.name}</p>
+                <p className="text-xs text-muted-foreground">{service.latency}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </Card>
     </div>
