@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store';
 import { Button } from '@/shared/ui';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { EthosCoreLogo } from '@/components/brand/EthosCoreLogo';
 
 export function PublicPortfolioLayout() {
   const location = useLocation();
@@ -12,11 +13,8 @@ export function PublicPortfolioLayout() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b border-border/80 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/70">
         <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#635bff_0%,#4f46e5_100%)] shadow-[0_12px_25px_-15px_rgba(79,70,229,0.9)]">
-              <span className="text-lg font-bold text-primary-foreground">{'</>'}</span>
-            </div>
-            <span className="text-2xl font-black tracking-tight text-foreground">EthosHub</span>
+          <Link to="/">
+            <EthosCoreLogo size="lg" />
           </Link>
 
           <nav className="hidden items-center gap-8 md:flex">
@@ -66,11 +64,8 @@ export function PublicPortfolioLayout() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid gap-10 md:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr]">
             <div>
-              <Link to="/" className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#635bff_0%,#4f46e5_100%)]">
-                  <span className="text-sm font-bold text-white">{'</>'}</span>
-                </div>
-                <span className="text-2xl font-black tracking-tight text-foreground">EthosHub</span>
+              <Link to="/">
+                <EthosCoreLogo size="lg" />
               </Link>
               <p className="mt-4 max-w-sm text-sm leading-7 text-muted-foreground">
                 La plataforma para profesionales tech que quieren destacar.

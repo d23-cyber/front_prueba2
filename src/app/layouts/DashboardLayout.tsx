@@ -23,6 +23,7 @@ import {
 import { cn } from '@/shared/lib/utils';
 import { useAuthStore, useUiStore, useNotificationsStore } from '@/store';
 import { Avatar, Badge } from '@/shared/ui';
+import { EthosCoreLogo } from '@/components/brand/EthosCoreLogo';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import type { Language } from '@/shared/types';
 
@@ -81,11 +82,8 @@ export function DashboardLayout() {
       >
         {/* Logo */}
         <div className="flex h-16 items-center justify-between border-b border-border px-4">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <span className="text-lg font-bold text-primary-foreground">E</span>
-            </div>
-            <span className="text-lg font-semibold text-foreground">EthosHub</span>
+          <Link to="/dashboard">
+            <EthosCoreLogo size="sm" />
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}

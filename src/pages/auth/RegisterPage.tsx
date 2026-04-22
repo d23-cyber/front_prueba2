@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail, Briefcase, Building2 } from 'lucide-react';
+import { cn } from '@/shared/lib/utils';
 import { Button, Input } from '@/shared/ui';
 import {
   AuthFooterLink,
@@ -13,6 +14,7 @@ import { TermsModal } from '@/components/auth/TermsModal';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const [selectedRole, setSelectedRole] = useState<'Estandar' | 'Reclutador'>('Estandar');
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,7 +34,7 @@ export default function RegisterPage() {
         prefills: {
           email,
           password,
-          role: 'professional',
+          role: selectedRole === 'Estandar' ? 'professional' : 'recruiter',
           fromRegister: true,
         },
       },
@@ -78,6 +80,89 @@ export default function RegisterPage() {
         </div>
 
         <div className="space-y-6 px-5 py-6 sm:px-8 sm:py-8">
+          {/* Role Selection Cards */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Professional Card */}
+            <motion.button
+              type="button"
+              onClick={() => setSelectedRole('Estandar')}
+              whileTap={{ scale: 0.98 }}
+              className={cn(
+                'relative flex flex-col items-center gap-3 rounded-2xl border-2 p-5 text-center transition-all duration-200',
+                selectedRole === 'Estandar'
+                  ? 'border-ethoshub-blue bg-ethoshub-blue/5 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] dark:bg-ethoshub-blue/10 dark:shadow-[0_0_25px_-5px_rgba(37,99,235,0.4)]'
+                  : 'border-border bg-card opacity-70 hover:opacity-100 hover:border-muted-foreground/30'
+              )}
+            >
+              <div className={cn(
+                'flex h-12 w-12 items-center justify-center rounded-xl transition-colors',
+                selectedRole === 'Estandar'
+                  ? 'bg-ethoshub-blue text-white'
+                  : 'bg-muted text-muted-foreground'
+              )}>
+                <Briefcase className="h-6 w-6" />
+              </div>
+              <div>
+                <p className={cn(
+                  'text-sm font-semibold transition-colors',
+                  selectedRole === 'Estandar' ? 'text-foreground' : 'text-muted-foreground'
+                )}>
+                  Soy Profesional
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Busco destacar mi talento, validar mis habilidades y conectar con oportunidades.
+                </p>
+              </div>
+              {selectedRole === 'Estandar' && (
+                <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-ethoshub-blue">
+                  <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              )}
+            </motion.button>
+
+            {/* Recruiter Card */}
+            <motion.button
+              type="button"
+              onClick={() => setSelectedRole('Reclutador')}
+              whileTap={{ scale: 0.98 }}
+              className={cn(
+                'relative flex flex-col items-center gap-3 rounded-2xl border-2 p-5 text-center transition-all duration-200',
+                selectedRole === 'Reclutador'
+                  ? 'border-ethoshub-blue bg-ethoshub-blue/5 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] dark:bg-ethoshub-blue/10 dark:shadow-[0_0_25px_-5px_rgba(37,99,235,0.4)]'
+                  : 'border-border bg-card opacity-70 hover:opacity-100 hover:border-muted-foreground/30'
+              )}
+            >
+              <div className={cn(
+                'flex h-12 w-12 items-center justify-center rounded-xl transition-colors',
+                selectedRole === 'Reclutador'
+                  ? 'bg-ethoshub-blue text-white'
+                  : 'bg-muted text-muted-foreground'
+              )}>
+                <Building2 className="h-6 w-6" />
+              </div>
+              <div>
+                <p className={cn(
+                  'text-sm font-semibold transition-colors',
+                  selectedRole === 'Reclutador' ? 'text-foreground' : 'text-muted-foreground'
+                )}>
+                  Soy Reclutador
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Busco talento verificado y de alta calidad para mi organizacion.
+                </p>
+              </div>
+              {selectedRole === 'Reclutador' && (
+                <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-ethoshub-blue">
+                  <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              )}
+            </motion.button>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email Field */}
             <div>
