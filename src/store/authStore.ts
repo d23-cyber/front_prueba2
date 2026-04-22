@@ -1,18 +1,26 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User, UserRole } from '@/shared/types';
-import { authService } from '@/shared/services';
+import { authService, ROLE_DISPLAY_NAMES, ROLE_REDIRECT_PATHS } from '@/shared/services/authService';
+
+interface LoginResult {
+  user: User;
+  roleDisplayName: string;
+  redirectPath: string;
+}
 
 interface AuthStore {
   user: User | null;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
-  login: (email: string, password: string, role: UserRole) => Promise<void>;
+  login: (email: string, password: string, role: UserRole) => Promise<LoginResult | null>;
   updateProfile: (data: Partial<User>) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
   switchRole: (role: UserRole) => void;
+  getRoleDisplayName: () => string;
+  getRedirectPath: () => string;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -23,13 +31,20 @@ export const useAuthStore = create<AuthStore>()(
       loading: false,
       error: null,
 
-      login: async (email: string, password: string, role: UserRole) => {
+      login: async (email: string, password: string, role: UserRole): Promise<LoginResult | null> => {
         set({ loading: true, error: null });
         try {
           const user = await authService.login(email, password, role);
           set({ user, isAuthenticated: true, loading: false });
+          
+          return {
+            user,
+            roleDisplayName: ROLE_DISPLAY_NAMES[user.role],
+            redirectPath: ROLE_REDIRECT_PATHS[user.role],
+          };
         } catch {
           set({ error: 'Error al iniciar sesión', loading: false });
+          return null;
         }
       },
 
@@ -71,6 +86,18 @@ export const useAuthStore = create<AuthStore>()(
         if (user) {
           set({ user: { ...user, role } });
         }
+      },
+
+      getRoleDisplayName: () => {
+        const { user } = get();
+        if (!user) return 'Invitado';
+        return ROLE_DISPLAY_NAMES[user.role] || 'Usuario';
+      },
+
+      getRedirectPath: () => {
+        const { user } = get();
+        if (!user) return '/';
+        return ROLE_REDIRECT_PATHS[user.role] || '/dashboard';
       },
     }),
     {

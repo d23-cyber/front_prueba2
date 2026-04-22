@@ -19,13 +19,17 @@ import {
   Globe,
   User,
   Search,
+  Users,
+  BarChart3,
+  Shield,
+  FileText,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { useAuthStore, useUiStore, useNotificationsStore } from '@/store';
 import { Avatar, Badge } from '@/shared/ui';
 import { EthosCoreLogo } from '@/components/brand/EthosCoreLogo';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import type { Language } from '@/shared/types';
+import type { Language, UserRole } from '@/shared/types';
 
 type DashboardNavItem = {
   path: string;
@@ -34,6 +38,7 @@ type DashboardNavItem = {
   label?: string;
 };
 
+// Navigation items for Estandar (Professional) users
 const professionalNavItems: DashboardNavItem[] = [
   { path: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard' },
   { path: '/dashboard/skills', icon: Code2, labelKey: 'nav.skills' },
@@ -45,10 +50,34 @@ const professionalNavItems: DashboardNavItem[] = [
   { path: '/dashboard/preferences', icon: Settings, labelKey: 'nav.preferences' },
 ];
 
+// Navigation items for Reclutador users
 const recruiterNavItems: DashboardNavItem[] = [
-  { path: '/dashboard', icon: Search, label: 'Buscar talento' },
-  ...professionalNavItems,
+  { path: '/dashboard', icon: LayoutDashboard, label: 'Panel Principal' },
+  { path: '/dashboard/talent-search', icon: Search, label: 'Busqueda de Talento' },
+  { path: '/dashboard/vacancies', icon: FileText, label: 'Mis Vacantes' },
+  { path: '/dashboard/preferences', icon: Settings, labelKey: 'nav.preferences' },
 ];
+
+// Navigation items for Administrador users
+const adminNavItems: DashboardNavItem[] = [
+  { path: '/dashboard', icon: LayoutDashboard, label: 'Panel Principal' },
+  { path: '/admin/moderation', icon: Shield, label: 'Panel de Moderacion' },
+  { path: '/admin/metrics', icon: BarChart3, label: 'Metricas Globales' },
+  { path: '/admin/users', icon: Users, label: 'Gestion de Usuarios' },
+  { path: '/dashboard/preferences', icon: Settings, labelKey: 'nav.preferences' },
+];
+
+// Get navigation items based on user role
+function getNavItemsForRole(role: UserRole): DashboardNavItem[] {
+  switch (role) {
+    case 'recruiter':
+      return recruiterNavItems;
+    case 'admin':
+      return adminNavItems;
+    default:
+      return professionalNavItems;
+  }
+}
 
 export function DashboardLayout() {
   const { t, i18n } = useTranslation();
@@ -59,7 +88,9 @@ export function DashboardLayout() {
   const { unreadCount } = useNotificationsStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const navItems = user?.role === 'recruiter' ? recruiterNavItems : professionalNavItems;
+  
+  // Get navigation items based on user role
+  const navItems = getNavItemsForRole(user?.role || 'professional');
 
   const handleLogout = async () => {
     await logout();
@@ -88,7 +119,7 @@ export function DashboardLayout() {
           <button
             onClick={() => setSidebarOpen(false)}
             className="rounded-lg p-1 hover:bg-accent lg:hidden"
-            aria-label="Cerrar menú"
+            aria-label="Cerrar menu"
           >
             <X className="h-5 w-5" />
           </button>
@@ -118,7 +149,7 @@ export function DashboardLayout() {
             })}
           </ul>
 
-          {/* Admin link */}
+          {/* Admin link for professional/recruiter users who also have admin access */}
           {user?.role === 'admin' && (
             <div className="mt-6 border-t border-border pt-6">
               <p className="mb-2 px-3 text-xs font-semibold uppercase text-muted-foreground">
@@ -171,7 +202,7 @@ export function DashboardLayout() {
           <button
             onClick={() => setSidebarOpen(true)}
             className="rounded-lg p-2 hover:bg-accent lg:hidden"
-            aria-label="Abrir menú"
+            aria-label="Abrir menu"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -270,7 +301,7 @@ export function DashboardLayout() {
                         <Globe className="h-4 w-4" />
                         Explorar portafolios
                       </Link>
-                    ) : (
+                    ) : user?.role === 'professional' ? (
                       <Link
                         to={`/p/${user?.slug}`}
                         className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent"
@@ -279,7 +310,7 @@ export function DashboardLayout() {
                         <Globe className="h-4 w-4" />
                         Ver mi portafolio
                       </Link>
-                    )}
+                    ) : null}
                     <Link
                       to="/dashboard/preferences"
                       className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent"

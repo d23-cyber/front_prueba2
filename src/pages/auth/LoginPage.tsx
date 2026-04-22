@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuthStore } from '@/store';
 import { Button, Input } from '@/shared/ui';
 import {
@@ -44,8 +45,21 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password, 'professional');
-    navigate('/dashboard');
+    
+    // Use professional as default role, but the authService will override
+    // based on the email if it matches a mock credential
+    const result = await login(email, password, 'professional');
+    
+    if (result) {
+      // Show welcome toast with role
+      toast.success(`Bienvenido de nuevo, ${result.roleDisplayName}`, {
+        description: 'Has iniciado sesion correctamente',
+        duration: 4000,
+      });
+      
+      // Navigate to role-specific path
+      navigate(result.redirectPath);
+    }
   };
 
   return (
@@ -62,8 +76,8 @@ export default function LoginPage() {
 
       <AuthHero
         eyebrow="Bienvenido de vuelta"
-        title="Inicia sesión en tu cuenta"
-        description="Accede a tu portafolio profesional y continúa construyendo tu presencia digital."
+        title="Inicia sesion en tu cuenta"
+        description="Accede a tu portafolio profesional y continua construyendo tu presencia digital."
       />
 
       <motion.section
@@ -77,7 +91,7 @@ export default function LoginPage() {
             <div>
               <p className="text-sm font-semibold text-primary">Acceso demo</p>
               <h2 className="mt-1 text-3xl font-bold tracking-tight text-foreground">
-                Iniciar sesión
+                Iniciar sesion
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
                 Usa las credenciales demo o ingresa las tuyas para continuar.
@@ -110,13 +124,13 @@ export default function LoginPage() {
             <div>
               <div className="mb-2 flex items-center justify-between gap-3">
                 <label htmlFor="password" className="text-sm font-semibold text-foreground">
-                  Contraseña
+                  Contrasena
                 </label>
                 <Link
                   to="/forgot-password"
                   className="text-xs font-semibold text-primary transition-colors hover:text-primary/80"
                 >
-                  ¿Olvidaste tu contraseña?
+                  Olvidaste tu contrasena?
                 </Link>
               </div>
               <div className="relative">
@@ -126,12 +140,12 @@ export default function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Ingresa tu contraseña"
+                  placeholder="Ingresa tu contrasena"
                   className="h-12 rounded-xl border-border bg-background pl-11 pr-12 transition-all focus:border-ethoshub-blue focus:ring-2 focus:ring-ethoshub-blue/20"
                 />
                 <button
                   type="button"
-                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  aria-label={showPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'}
                   onClick={() => setShowPassword((value) => !value)}
                   className="absolute right-3 top-1/2 inline-flex -translate-y-1/2 cursor-pointer rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                 >
@@ -152,14 +166,17 @@ export default function LoginPage() {
               loading={loading}
               className="h-12 w-full rounded-xl bg-primary text-base font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30"
             >
-              Iniciar sesión
+              Iniciar sesion
             </Button>
 
             {/* Demo Credentials */}
             <div className="rounded-xl border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
-              <p className="font-semibold text-foreground">Credenciales demo</p>
-              <p className="mt-1">Email: demo@ethoshub.com</p>
-              <p>Contraseña: demo123</p>
+              <p className="font-semibold text-foreground">Credenciales demo por rol</p>
+              <div className="mt-2 space-y-1.5">
+                <p><span className="font-medium text-ethoshub-blue">Profesional:</span> profesional@ethoshub.com / demo</p>
+                <p><span className="font-medium text-ethoshub-blue">Reclutador:</span> reclutador@ethoshub.com / demo</p>
+                <p><span className="font-medium text-ethoshub-blue">Admin:</span> admin@ethoshub.com / demo</p>
+              </div>
             </div>
           </form>
 
@@ -167,7 +184,7 @@ export default function LoginPage() {
           <div className="flex items-center gap-4">
             <div className="h-px flex-1 bg-border" />
             <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-              O continúa con
+              O continua con
             </span>
             <div className="h-px flex-1 bg-border" />
           </div>
@@ -178,7 +195,7 @@ export default function LoginPage() {
             githubLabel="Continuar con GitHub"
           />
 
-          <AuthFooterLink prompt="¿No tienes cuenta?" cta="Crear cuenta" to="/register" />
+          <AuthFooterLink prompt="No tienes cuenta?" cta="Crear cuenta" to="/register" />
         </div>
       </motion.section>
     </div>
